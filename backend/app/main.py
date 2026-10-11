@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.dependencies.database import get_db
 
+# auth router
+from app.routers import auth,users
 app = FastAPI(title=settings.app_name)
 
 app.add_middleware(
@@ -15,6 +17,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+app.include_router(auth.router,prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1") 
 # Root function
 @app.get("/")
 def root():
