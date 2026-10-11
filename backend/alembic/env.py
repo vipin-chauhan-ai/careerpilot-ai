@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 from app.db.session import Base,engine
 from app.models.user import User
+from app.models.job_application import JobApplication
 config = context.config
 
 

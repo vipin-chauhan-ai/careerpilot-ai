@@ -1,19 +1,27 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
     DateTime,
     Integer,
+    ForeignKey,
+    Date,
     String,
     func,
-    text,
+    Text,
+    text
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column,relationship
 
 from app.db.session import Base
 
-
+if TYPE_CHECKING:
+ from app.models.job_application import JobApplication
+ 
 class User(Base):
+    
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(
@@ -51,4 +59,9 @@ class User(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+    
+    job_applications: Mapped[list["JobApplication"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

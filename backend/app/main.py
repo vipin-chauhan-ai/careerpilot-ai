@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.dependencies.database import get_db
 
 # auth router
-from app.routers import auth,users
+from app.routers import auth,users,job_applications
 app = FastAPI(title=settings.app_name)
 
 app.add_middleware(
@@ -19,7 +19,8 @@ app.add_middleware(
 )
 
 app.include_router(auth.router,prefix="/api/v1")
-app.include_router(users.router, prefix="/api/v1") 
+app.include_router(users.router, prefix="/api/v1")
+app.include_router(job_applications.router, prefix="/api/v1")
 # Root function
 @app.get("/")
 def root():
