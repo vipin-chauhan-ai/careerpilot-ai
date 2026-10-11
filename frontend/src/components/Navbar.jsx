@@ -36,6 +36,10 @@ function Navbar() {
  <NavLink className={navClass} to="/dashboard">
  Dashboard
  </NavLink>
+
+ <NavLink className={navClass} to="/applications">
+Applications
+ </NavLink>
  <button
  className="btn btn-outline-light ms-lg-2"
  onClick={handleLogout}

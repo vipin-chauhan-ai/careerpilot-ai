@@ -7,6 +7,9 @@ import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AddJobApplication from "./pages/AddJobApplication";
+import EditJobApplication from "./pages/EditJobApplication";
+import JobApplications from "./pages/JobApplications";
 function App() {
  return (
  <>
@@ -19,6 +22,13 @@ function App() {
  <Route path="/login" element={<Login />} />
  <Route element={<ProtectedRoute />}>
  <Route path="/dashboard" element={<Dashboard />} />
+ <Route path="/applications" element={<JobApplications/>}/>   
+ <Route path="/applications/new" element={<AddJobApplication/>}/>   
+   
+ <Route
+ path="/applications/:applicationId/edit"
+ element={<EditJobApplication />}
+ />
  </Route>
  </Routes>
  </>
