@@ -55,3 +55,10 @@ class JobApplilcationResponse(BaseModel):
     applied_date :date | None
     notes : str | None
     created_at : datetime
+    
+class JobApplicationListResponse(BaseModel):
+     items: list[JobApplilcationResponse]
+     total:int
+     page:int
+     limit:int
+     total_pages:int

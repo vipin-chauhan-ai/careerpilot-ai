@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-
+from fastapi import APIRouter, Depends, HTTPException, status,Query
+from sqlalchemy.orm import Session 
+from sqlalchemy import func, or_, select
 from app.dependencies.auth import get_current_user
 from app.dependencies.database import get_db
 from app.models.job_application import JobApplication
@@ -10,6 +9,8 @@ from app.schemas.job_application import (
     jobApplicationCreate,
     JobApplilcationResponse,
     JobApplicationUpdate,
+    JobStatus,
+    JobApplicationListResponse
 )
 
 router = APIRouter(
@@ -63,21 +64,69 @@ def create_job_application(
 
 @router.get(
     "",
-    response_model=list[JobApplilcationResponse],
+    response_model=JobApplicationListResponse,
 )
 def list_job_applications(
+    search:str | None =Query(
+        default=None,
+        max_length=200,
+    ),
+    status_filter :JobStatus | None = Query(
+        default=None,
+        alias="status", 
+    ),
+    page: int = Query(default=1,ge=1),
+    limit:int = Query(default=10, ge=1, le=100),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[JobApplication]:
+    filters = [
+        JobApplication.user_id == current_user.id
+    ]
+    search_value = search.strip() if search else ""
+ 
+    if search_value:
+        search_pattern = f"%{search_value}%"
+        filters.append(
+            or_(
+                JobApplication.company_name.ilike(
+                   search_pattern, 
+                ),
+                JobApplication.job_title.ilike(
+                     search_pattern, 
+                )
+                )
+        )
+    if status_filter:
+        filters.append(
+            JobApplication.status == status_filter
+        )    
+    count_statement = (
+        select (func.count())
+        .select_from(JobApplication)
+        .where(*filters)
+    )    
+    total = db.scalar(count_statement) or 0
+    offset = (page - 1 ) * limit
     statement = (
         select(JobApplication)
-        .where(JobApplication.user_id == current_user.id)
-        .order_by(JobApplication.created_at.desc())
+        .where(*filters)
+       .order_by(JobApplication.created_at.desc(),
+                 JobApplication.id.desc()
+                 )
+       .offset(offset)
+       .limit(limit)
     )
 
-    return list(db.scalars(statement).all())
-
-
+    items = list(db.scalars(statement).all())
+    total_pages = (total + limit - 1 ) // limit
+    return JobApplicationListResponse(
+        items = items,
+        total= total,
+        page= page,
+        limit=limit,
+        total_pages = total_pages
+    )
 @router.get(
     "/{application_id}",
     response_model=JobApplilcationResponse,
@@ -86,7 +135,7 @@ def get_job_applcaiton(
     application_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> JobApplication:
+) -> JobApplicationListResponse:
     return get_owned_applicaiton(
         application_id,
         current_user,
